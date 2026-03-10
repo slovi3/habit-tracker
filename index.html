@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Habit Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="bg-glow glow-left"></div>
+  <div class="bg-glow glow-right"></div>
+
+  <main class="container">
+    <section class="hero-card">
+      <h1>Habit Tracker</h1>
+      <p class="hero-text">
+        Günlük alışkanlıklarını takip et, streak oluştur ve düzenini görünür hale getir.
+      </p>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-label">Toplam</span>
+          <strong id="totalHabits">0</strong>
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-label">Bugün Tamamlanan</span>
+          <strong id="completedHabits">0</strong>
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-label">En İyi Streak</span>
+          <strong id="bestStreak">0</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="app-card">
+      <div class="card-top">
+        <div>
+          <p class="eyebrow">Yeni Alışkanlık</p>
+          <h2>Bugün ne takip edeceğiz?</h2>
+        </div>
+      </div>
+
+      <form id="habitForm" class="habit-form">
+        <input
+          type="text"
+          id="habitInput"
+          placeholder="Örnek: 30 dk İngilizce çalış"
+          autocomplete="off"
+        />
+        <button type="submit" id="addHabitBtn">Ekle</button>
+      </form>
+
+      <div class="list-top">
+        <p class="eyebrow">Alışkanlıklar</p>
+        <button id="clearAllBtn" class="ghost-btn" type="button">Tümünü Temizle</button>
+      </div>
+
+      <div id="emptyState" class="empty-state">
+        Henüz alışkanlık eklenmedi. İlk alışkanlığını ekleyerek başla.
+      </div>
+
+      <ul id="habitList" class="habit-list"></ul>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
