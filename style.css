@@ -240,7 +240,6 @@ p {
 }
 
 .ring-progress {
-  stroke: url(#gradient);
   stroke: var(--accent);
   stroke-linecap: round;
   stroke-dasharray: 301.59;
