@@ -17,36 +17,66 @@
   <div class="bg-glow glow-left"></div>
   <div class="bg-glow glow-right"></div>
 
-  <main class="container">
-    <section class="hero-card">
-      <h1>Habit Tracker</h1>
-      <p class="hero-text">
-        Günlük alışkanlıklarını takip et, streak oluştur ve düzenini görünür hale getir.
-      </p>
-
-      <div class="stats-grid">
-        <div class="stat-card">
-          <span class="stat-label">Toplam</span>
-          <strong id="totalHabits">0</strong>
+  <main class="app-shell">
+    <section class="dashboard-card">
+      <div class="dashboard-top">
+        <div>
+          <p class="eyebrow">Bugünün Takibi</p>
+          <h1>Habit Tracker</h1>
+          <p class="subtitle">
+            Alışkanlıklarını günlük olarak takip et, zinciri kırma ve ilerlemeni görünür hale getir.
+          </p>
         </div>
 
-        <div class="stat-card">
-          <span class="stat-label">Bugün Tamamlanan</span>
-          <strong id="completedHabits">0</strong>
+        <div class="today-box">
+          <span class="today-label">Bugün</span>
+          <strong id="todayText">--</strong>
         </div>
+      </div>
 
-        <div class="stat-card">
-          <span class="stat-label">En İyi Streak</span>
+      <div class="summary-grid">
+        <article class="summary-card summary-card--large">
+          <div class="summary-card-head">
+            <span>Günlük İlerleme</span>
+            <strong id="completionPercent">0%</strong>
+          </div>
+
+          <div class="progress-ring-wrap">
+            <svg class="progress-ring" viewBox="0 0 120 120">
+              <circle class="ring-bg" cx="60" cy="60" r="48"></circle>
+              <circle class="ring-progress" id="ringProgress" cx="60" cy="60" r="48"></circle>
+            </svg>
+
+            <div class="ring-center">
+              <strong id="completedCount">0</strong>
+              <span>/ <span id="totalCount">0</span></span>
+            </div>
+          </div>
+
+          <p class="summary-note" id="summaryNote">
+            Bugün için ilk adımı at.
+          </p>
+        </article>
+
+        <article class="summary-card">
+          <span class="card-label">En iyi streak</span>
           <strong id="bestStreak">0</strong>
-        </div>
+          <p>Şu ana kadarki en yüksek seri.</p>
+        </article>
+
+        <article class="summary-card">
+          <span class="card-label">Aktif alışkanlık</span>
+          <strong id="activeHabits">0</strong>
+          <p>Takip ettiğin toplam kayıt.</p>
+        </article>
       </div>
     </section>
 
-    <section class="app-card">
-      <div class="card-top">
+    <section class="manager-card">
+      <div class="manager-top">
         <div>
-          <p class="eyebrow">Yeni Alışkanlık</p>
-          <h2>Bugün ne takip edeceğiz?</h2>
+          <p class="eyebrow">Yeni Kayıt</p>
+          <h2>Yeni alışkanlık ekle</h2>
         </div>
       </div>
 
@@ -57,16 +87,29 @@
           placeholder="Örnek: 30 dk İngilizce çalış"
           autocomplete="off"
         />
-        <button type="submit" id="addHabitBtn">Ekle</button>
+
+        <select id="habitCategory">
+          <option value="Genel">Genel</option>
+          <option value="Sağlık">Sağlık</option>
+          <option value="Yazılım">Yazılım</option>
+          <option value="Dil">Dil</option>
+          <option value="Spor">Spor</option>
+        </select>
+
+        <button type="submit">Ekle</button>
       </form>
 
-      <div class="list-top">
-        <p class="eyebrow">Alışkanlıklar</p>
+      <div class="list-header">
+        <div>
+          <p class="eyebrow">Liste</p>
+          <h3>Günlük alışkanlıkların</h3>
+        </div>
+
         <button id="clearAllBtn" class="ghost-btn" type="button">Tümünü Temizle</button>
       </div>
 
       <div id="emptyState" class="empty-state">
-        Henüz alışkanlık eklenmedi. İlk alışkanlığını ekleyerek başla.
+        Henüz bir kayıt yok. İlk alışkanlığını ekleyerek başla.
       </div>
 
       <ul id="habitList" class="habit-list"></ul>

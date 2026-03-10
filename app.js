@@ -1,15 +1,22 @@
 const habitForm = document.getElementById("habitForm");
 const habitInput = document.getElementById("habitInput");
+const habitCategory = document.getElementById("habitCategory");
 const habitList = document.getElementById("habitList");
 const emptyState = document.getElementById("emptyState");
 
-const totalHabits = document.getElementById("totalHabits");
-const completedHabits = document.getElementById("completedHabits");
+const totalCount = document.getElementById("totalCount");
+const completedCount = document.getElementById("completedCount");
+const completionPercent = document.getElementById("completionPercent");
 const bestStreak = document.getElementById("bestStreak");
+const activeHabits = document.getElementById("activeHabits");
+const summaryNote = document.getElementById("summaryNote");
+const todayText = document.getElementById("todayText");
+const ringProgress = document.getElementById("ringProgress");
 
 const clearAllBtn = document.getElementById("clearAllBtn");
 
-const STORAGE_KEY = "habit_tracker_v1";
+const STORAGE_KEY = "habit_tracker_v2";
+const RING_CIRCUMFERENCE = 2 * Math.PI * 48;
 
 let habits = readHabits();
 
@@ -26,13 +33,31 @@ function saveHabits() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(habits));
 }
 
-function addHabit(name) {
+function getTodayKey() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function formatToday() {
+  const now = new Date();
+  return now.toLocaleDateString("tr-TR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function addHabit(name, category) {
   habits.unshift({
     id: crypto.randomUUID(),
     name,
+    category,
     streak: 0,
-    completedToday: false,
     createdAt: Date.now(),
+    checkedDays: [],
   });
 
   saveHabits();
@@ -40,21 +65,26 @@ function addHabit(name) {
 }
 
 function toggleHabit(id) {
+  const today = getTodayKey();
+
   habits = habits.map((habit) => {
     if (habit.id !== id) return habit;
 
-    if (habit.completedToday) {
+    const hasToday = habit.checkedDays.includes(today);
+
+    if (hasToday) {
+      const newDays = habit.checkedDays.filter((day) => day !== today);
       return {
         ...habit,
+        checkedDays: newDays,
         streak: Math.max(0, habit.streak - 1),
-        completedToday: false,
       };
     }
 
     return {
       ...habit,
+      checkedDays: [...habit.checkedDays, today],
       streak: habit.streak + 1,
-      completedToday: true,
     };
   });
 
@@ -77,14 +107,57 @@ function clearAllHabits() {
   render();
 }
 
-function updateStats() {
-  const total = habits.length;
-  const completed = habits.filter((habit) => habit.completedToday).length;
-  const best = habits.reduce((max, habit) => Math.max(max, habit.streak), 0);
+function isCompletedToday(habit) {
+  return habit.checkedDays.includes(getTodayKey());
+}
 
-  totalHabits.textContent = total;
-  completedHabits.textContent = completed;
+function getLast7Days() {
+  const labels = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cts", "Paz"];
+  const days = [];
+
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+
+    days.push({
+      key: `${year}-${month}-${day}`,
+      label: labels[(d.getDay() + 6) % 7],
+    });
+  }
+
+  return days;
+}
+
+function updateSummary() {
+  const total = habits.length;
+  const completed = habits.filter(isCompletedToday).length;
+  const best = habits.reduce((max, habit) => Math.max(max, habit.streak), 0);
+  const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
+  const offset = RING_CIRCUMFERENCE - (percent / 100) * RING_CIRCUMFERENCE;
+
+  totalCount.textContent = total;
+  completedCount.textContent = completed;
+  completionPercent.textContent = `${percent}%`;
   bestStreak.textContent = best;
+  activeHabits.textContent = total;
+  todayText.textContent = formatToday();
+
+  ringProgress.style.strokeDasharray = `${RING_CIRCUMFERENCE}`;
+  ringProgress.style.strokeDashoffset = `${offset}`;
+
+  if (total === 0) {
+    summaryNote.textContent = "Bugün için ilk adımı at.";
+  } else if (percent === 100) {
+    summaryNote.textContent = "Harika. Bugünün tüm kayıtlarını tamamladın.";
+  } else if (percent >= 50) {
+    summaryNote.textContent = "İyi gidiyorsun. Kalanları da kapat.";
+  } else {
+    summaryNote.textContent = "Ritmi yakala. Bugün birkaç adım daha at.";
+  }
 }
 
 function escapeHtml(text) {
@@ -96,40 +169,68 @@ function escapeHtml(text) {
     .replaceAll("'", "&#039;");
 }
 
+function createWeekTrack(habit) {
+  const days = getLast7Days();
+
+  return `
+    <div class="week-track">
+      ${days
+        .map((day) => {
+          const done = habit.checkedDays.includes(day.key);
+          return `
+            <div class="day-box ${done ? "done" : ""}">
+              <span>${day.label}</span>
+              <div class="day-dot"></div>
+            </div>
+          `;
+        })
+        .join("")}
+    </div>
+  `;
+}
+
 function createHabitItem(habit) {
+  const completed = isCompletedToday(habit);
+
   const li = document.createElement("li");
   li.className = "habit-item";
 
   li.innerHTML = `
-    <div class="habit-main">
-      <h3 class="habit-name">${escapeHtml(habit.name)}</h3>
-      <div class="habit-meta">
-        <span class="meta-pill">Streak: ${habit.streak}</span>
-        ${
-          habit.completedToday
-            ? `<span class="meta-pill success">Bugün tamamlandı</span>`
-            : `<span class="meta-pill">Bugün bekliyor</span>`
-        }
+    <div class="habit-row">
+      <div class="habit-main">
+        <h3 class="habit-name">${escapeHtml(habit.name)}</h3>
+
+        <div class="habit-tags">
+          <span class="tag">${escapeHtml(habit.category)}</span>
+          <span class="tag">Streak: ${habit.streak}</span>
+          ${
+            completed
+              ? `<span class="tag success">Bugün tamamlandı</span>`
+              : `<span class="tag">Bugün bekliyor</span>`
+          }
+        </div>
+      </div>
+
+      <div class="habit-actions">
+        <button
+          class="action-btn ${completed ? "completed" : ""}"
+          data-action="toggle"
+          data-id="${habit.id}"
+        >
+          ${completed ? "Geri Al" : "Tamamlandı"}
+        </button>
+
+        <button
+          class="delete-btn"
+          data-action="delete"
+          data-id="${habit.id}"
+        >
+          Sil
+        </button>
       </div>
     </div>
 
-    <div class="habit-actions">
-      <button
-        class="done-btn ${habit.completedToday ? "completed" : ""}"
-        data-action="toggle"
-        data-id="${habit.id}"
-      >
-        ${habit.completedToday ? "Geri Al" : "Tamamlandı"}
-      </button>
-
-      <button
-        class="delete-btn"
-        data-action="delete"
-        data-id="${habit.id}"
-      >
-        Sil
-      </button>
-    </div>
+    ${createWeekTrack(habit)}
   `;
 
   return li;
@@ -147,20 +248,21 @@ function render() {
     });
   }
 
-  updateStats();
+  updateSummary();
 }
 
 habitForm.addEventListener("submit", (event) => {
   event.preventDefault();
 
   const name = habitInput.value.trim();
+  const category = habitCategory.value;
 
   if (!name) {
     habitInput.focus();
     return;
   }
 
-  addHabit(name);
+  addHabit(name, category);
   habitInput.value = "";
   habitInput.focus();
 });
