@@ -33,17 +33,23 @@ function saveHabits() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(habits));
 }
 
-function getTodayKey() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
+function getTodayDate() {
+  return new Date();
+}
+
+function toYMD(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 }
 
+function getTodayKey() {
+  return toYMD(getTodayDate());
+}
+
 function formatToday() {
-  const now = new Date();
-  return now.toLocaleDateString("tr-TR", {
+  return getTodayDate().toLocaleDateString("tr-TR", {
     day: "2-digit",
     month: "long",
     year: "numeric",
@@ -116,16 +122,13 @@ function getLast7Days() {
   const days = [];
 
   for (let i = 6; i >= 0; i--) {
-    const d = new Date();
+    const d = getTodayDate();
     d.setDate(d.getDate() - i);
 
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-
     days.push({
-      key: `${year}-${month}-${day}`,
+      key: toYMD(d),
       label: labels[(d.getDay() + 6) % 7],
+      isToday: toYMD(d) === getTodayKey(),
     });
   }
 
@@ -177,8 +180,10 @@ function createWeekTrack(habit) {
       ${days
         .map((day) => {
           const done = habit.checkedDays.includes(day.key);
+          const todayClass = day.isToday ? "today" : "";
+
           return `
-            <div class="day-box ${done ? "done" : ""}">
+            <div class="day-box ${done ? "done" : ""} ${todayClass}">
               <span>${day.label}</span>
               <div class="day-dot"></div>
             </div>
